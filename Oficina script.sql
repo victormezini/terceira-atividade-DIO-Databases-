@@ -1,117 +1,101 @@
--- criação do banco de dados para o cenário do E-commerce 
-create database oficina;
-use oficina;
+-- criação do banco de dados para o cenário do E-commerce
+CREATE DATABASE oficina;
+USE oficina;
 
 -- criar tabela cliente
-
-create table clients(
-		idClient int auto_increment primary key,
-        Cname varchar(15),
-        CPF char(11) not null,
-        Address varchar(30),
-        constraint unique_cpf_cliente unique (CPF)
+CREATE TABLE clients (
+idClient INT AUTO_INCREMENT PRIMARY KEY,
+Cname VARCHAR(15),
+CPF CHAR(11) NOT NULL,
+Address VARCHAR(30),
+UNIQUE (CPF)
 );
 
-alter table clients auto_increment=1;
+ALTER TABLE clients AUTO_INCREMENT=1;
 
 -- criar tabela Serviço solicitado
-
-create table service(
-		Ssolicitado int auto_increment primary key,
-        Sname varchar(15) not null,
-        category enum('Revisão', 'Troca de fluidos', 'Limpeza', 'Concerto', 'Avaliação') default 'Revisão',
-        avaliação float default 0,
-        size varchar(10)
+CREATE TABLE services (
+idService INT AUTO_INCREMENT PRIMARY KEY,
+Sname VARCHAR(15) NOT NULL,
+category ENUM('Revisão', 'Troca de fluidos', 'Limpeza', 'Concerto', 'Avaliação') DEFAULT 'Revisão',
+avaliacao FLOAT DEFAULT 0,
+size VARCHAR(10)
 );
 
--- tabela de pagamento 
-
-create table payments(
-	idclient int,
-    idpayment int,
-    typePayment enum('Boleto', 'Cartão', 'Dinheiro'),
-    limitAvalible float,
-    CreditDate date,
-    primary key(idClient, id_payment)
+-- tabela de pagamento
+CREATE TABLE payments (
+idPayment INT AUTO_INCREMENT PRIMARY KEY,
+idClient INT,
+typePayment ENUM('Boleto', 'Cartão', 'Dinheiro'),
+limitAvailable FLOAT,
+CreditDate DATE,
+FOREIGN KEY (idClient) REFERENCES clients(idClient) ON UPDATE CASCADE
 );
 
 -- criar tabela OS
-
-create table OS(
-	idOS int auto_increment primary key,
-    idOSClient int,
-    OSStatus enum('Cancelado', 'Confirmado', 'Em processamento para a equeipe') default 'Em processamento',
-    oderdescription varchar(255),
-    sendValue float default 10,
-    paymentCash bool default false,
-    constraint fk_oders_client foreign key (idOrderClient) references Clients (idClient)
-			on update cascade
+CREATE TABLE orders (
+idOrder INT AUTO_INCREMENT PRIMARY KEY,
+idClient INT,
+orderStatus ENUM('Cancelado', 'Confirmado', 'Em processamento para a equipe') DEFAULT 'Em processamento',
+orderDescription VARCHAR(255),
+sendValue FLOAT DEFAULT 10,
+paymentCash BOOLEAN DEFAULT FALSE,
+FOREIGN KEY (idClient) REFERENCES clients(idClient) ON UPDATE CASCADE
 );
 
-
--- criar tabela estoque 
-
-create table productStorage(
-	idProductStorage int auto_increment primary key,
-	StorageLocation varchar(255),
-    quantity int default 0
+-- criar tabela estoque
+CREATE TABLE productStorage (
+idProduct INT AUTO_INCREMENT PRIMARY KEY,
+StorageLocation VARCHAR(255),
+quantity INT DEFAULT 0
 );
 
--- criar tabela estoque 
-
-create table supplier(
-	idSupplier int auto_increment primary key
+-- criar tabela fornecedor
+CREATE TABLE suppliers (
+idSupplier INT AUTO_INCREMENT PRIMARY KEY
 );
-
 
 -- criar tabela de pedido de peças
-
-create table pecasOrder(
-	idPOpecas int,
-    idPOorder int,
-    poQuantity int default 1,
-    poStatus enum('Disponível', 'Sem estoque') default 'Disponível',
-    primary key (idPOproduct, idPOorder),
-    constraint fk_productorder_seller foreign key (idPOproduct) references product(idProduct),
-    constraint fk_productorder_product foreign key (idPOorder) references orders(idOrder)
+CREATE TABLE productOrder (
+idPOProduct INT,
+idPOOrder INT,
+poQuantity INT DEFAULT 1,
+poStatus ENUM('Disponível', 'Sem estoque') DEFAULT 'Disponível',
+PRIMARY KEY (idPOProduct, idPOOrder),
+FOREIGN KEY (idPOProduct) REFERENCES productStorage(idProduct),
+FOREIGN KEY (idPOOrder) REFERENCES orders(idOrder)
 );
 
 -- tabela de equipe
-
-create table equipe (
-	idEquipe int,
-    Omecanicos varchar(45)
-    constraint fk_equipe_mecanico foreign key (idMechanics) references mechanics(MEspecialidade)
+CREATE TABLE teams (
+idTeam INT AUTO_INCREMENT PRIMARY KEY,
+mechanics VARCHAR(45)
 );
 
 -- tabela de mecânicos
-
-create table mechanics (
-	idMechanics int,
-    Mnome varchar(255),
-    Cint int,
-    Mendereço varchar(45),
-    MEspecialidade varchar(255)
-    constraint fk_mecanico_equipe foreign key (idEquipe) references Oequipe(idOequipe)
+CREATE TABLE mechanics (
+idMechanic INT AUTO_INCREMENT PRIMARY KEY,
+Mname VARCHAR(255),
+Cint INT,
+Mendereco VARCHAR(45),
+MEspecialidade VARCHAR(255),
+idTeam INT,
+FOREIGN KEY (idTeam) REFERENCES teams(idTeam)
 );
-
 
 -- criando tabela product supplier
-
-create table productSupplier(
-	idPsSupplier int, 
-    idPsProduct int,
-    quantity int not null,
-    primary key (idPsSupplier, idPsProduct),
-    constraint fk_product_supplier_supplier foreign key (idPsSupplier) references supplier(idSupplier),
-    constraint fk_product_supplier_product foreign key (idPsProduct) references product(idProduct)
+CREATE TABLE productSupplier (
+idPSSupplier INT,
+idPSProduct INT,
+quantity INT NOT NULL,
+PRIMARY KEY (idPSSupplier, idPSProduct),
+FOREIGN KEY (idPSSupplier) REFERENCES suppliers(idSupplier),
+FOREIGN KEY (idPSProduct) REFERENCES productStorage(idProduct)
 );
 
-
 -- comandos de consulta de tabela
-
-show databases;
-show tables;
-desc productSupplier;
-select *  from referential_constraints;
-select *  from referential_constraints where constraint_schema = oficina;
+SHOW DATABASES;
+SHOW TABLES;
+DESCRIBE productSupplier;
+SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS;
+SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE constraint_schema = 'oficina';
